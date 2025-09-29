@@ -1,0 +1,41 @@
+import { Stack, useRouter, useSegments } from 'expo-router';
+import { AuthProvider, useAuth } from '../context/AuthContext';
+import { RequestProvider } from '../context/RequestContext';
+import { useEffect } from 'react';
+import { StatusBar } from 'expo-status-bar';
+
+// navigation logic
+const RootNavigationLayout = () => {
+  const { isAuthenticated } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
+
+  useEffect(() => {
+    const inTabsGroup = segments[0] === '(tabs)';
+
+    if (isAuthenticated && !inTabsGroup) {
+      router.replace('/home');
+    } else if (!isAuthenticated && inTabsGroup) {
+      router.replace('/');
+    }
+  }, [isAuthenticated, segments, router]);
+
+  return (
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(tabs)" />
+      </Stack>
+  );
+};
+
+
+export default function RootLayout() {
+  return (
+    <AuthProvider>
+      <RequestProvider>
+        <StatusBar style="light" />
+        <RootNavigationLayout />
+      </RequestProvider>
+    </AuthProvider>
+  );
+}
