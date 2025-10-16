@@ -1,5 +1,5 @@
-import { View, Text, TextInput, TouchableOpacity, Image, SafeAreaView, Alert } from 'react-native';
 import 'nativewind';
+import { Alert, Image, SafeAreaView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 
 export default function SignInScreen() {
@@ -14,7 +14,7 @@ export default function SignInScreen() {
       <View className="flex-1 justify-center items-center p-6">
         <Image
           source={require('../assets/meg-logo.png')}
-          className="w-40 h-20 rounded-full mb-10"
+          className="w-40 h-40 rounded-full mb-10"
         />
         <Text className="text-3xl font-bold text-brand-text mb-8 w-full"> Sign In </Text>
         
