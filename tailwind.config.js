@@ -1,12 +1,17 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./App.tsx", "./components/**/*.{js,jsx,ts,tsx}"],
-  presets: [require("nativewind/preset")],
+  content: [
+    './App.{js,jsx,ts,tsx}',
+    './app/**/*.{js,jsx,ts,tsx}',
+    './components/**/*.{js,jsx,ts,tsx}',
+  ],
+  presets: [require('nativewind/preset')],
   theme: {
-    extend: {colors: {
+    extend: {
+      colors: {
         'brand-dark': '#121212',
         'brand-blue': '#007AFF',
-        'brand-light-blue': '#3B82F6', 
+        'brand-light-blue': '#3B82F6',
         'brand-surface': '#1E1E1E',
         'brand-green': '#34C759',
         'brand-yellow': '#FFCC00',
@@ -16,4 +21,4 @@ module.exports = {
     },
   },
   plugins: [],
-}
+};
