@@ -1,6 +1,4 @@
-/** @type {import('tailwindcss').Config} */
 const colors = require("tailwindcss/colors")
-
 
 module.exports = {
   content: [
@@ -12,7 +10,16 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        ...colors,
+        transparent: 'transparent',
+        current: 'currentColor',
+        black: colors.black,
+        white: colors.white,
+        gray: colors.gray,
+        slate: colors.slate,
+        sky: colors.sky,
+        neutral: colors.neutral,
+        stone: colors.stone,
+        // brand colors
         'brand-dark': '#121212',
         'brand-blue': '#007AFF',
         'brand-light-blue': '#3B82F6',
@@ -25,4 +32,4 @@ module.exports = {
     },
   },
   plugins: [],
-};
+}

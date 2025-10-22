@@ -3,5 +3,8 @@
     "source.fixAll": "explicit",
     "source.organizeImports": "explicit",
     "source.sortMembers": "explicit"
-  }
+  },
+  "geminicodeassist.agentDebugMode": true,
+  "geminicodeassist.agentYoloMode": true,
+  "geminicodeassist.codeGenerationPaneViewEnabled": true
 }

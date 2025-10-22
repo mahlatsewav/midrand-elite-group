@@ -1,10 +1,10 @@
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import '../app/global.css';
+import './global.css';
 import { AuthProvider, useAuth } from '../context/AuthContext';
 import { RequestProvider } from '../context/RequestContext';
-
+import React from 'react';
 
 // navigation logic
 const RootNavigationLayout = () => {
