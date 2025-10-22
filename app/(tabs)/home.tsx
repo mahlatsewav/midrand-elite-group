@@ -1,25 +1,11 @@
 import { View, Text, TouchableOpacity, FlatList, SafeAreaView } from 'react-native';
 import {  } from 'nativewind';
 import { useAuth } from '../../context/AuthContext';
-import { useRequests, ServiceRequest } from '../../context/RequestContext';
+import { useRequests } from '../../context/RequestContext';
 import { Link, useRouter } from 'expo-router';
+import RequestCard from '@/components/ui/RequestCard';
 
-const StatusBadge = ({ status }: { status: ServiceRequest['status'] }) => {
-  const bgColor = status === 'Complete' ? 'bg-brand-green' : 'bg-brand-yellow';
-  const textColor = status === 'Complete' ? 'text-white' : 'text-black';
-  return (
-    <View className={`px-3 py-1 rounded-full ${bgColor}`}>
-      <Text className={`font-semibold text-xs ${textColor}`}>{status}</Text>
-    </View>
-  );
-};
 
-const RequestCard = ({ item }: { item: ServiceRequest }) => (
-  <View className="bg-brand-surface p-4 rounded-lg mb-3 flex-row justify-between items-center">
-    <Text className="text-brand-text text-lg">{item.title}</Text>
-    <StatusBadge status={item.status} />
-  </View>
-);
 
 export default function HomeScreen() {
   const { user } = useAuth();

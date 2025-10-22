@@ -1,17 +1,21 @@
-import React, { createContext, useState, useContext, ReactNode } from 'react';
-import { useRouter, useSegments } from 'expo-router';
+import { router, useRouter, useSegments } from 'expo-router';
+import React, { createContext, ReactNode, useContext, useState } from 'react';
+
+type Role = "user" | "worker" | "admin";
 
 // Mock User Data
-const MOCK_USER = {
+const MOCK_USER : User = {
   id: 'u1',
   firstName: 'Mahlatse',
   email: 'mahlatse@gmail.com',
+  role: "worker"
 };
 
 interface User {
   id: string;
   firstName: string;
   email: string;
+  role: Role
 }
 
 interface AuthContextType {
@@ -28,7 +32,7 @@ export function useProtectedRoute(user: User | null) {
   const router = useRouter();
 
   React.useEffect(() => {
-    const inAuthGroup = segments[0] === '(auth)';
+    const inAuthGroup = (segments[0] as string) === '(auth)';
     if (!user && !inAuthGroup) {
       router.replace('/');
     } else if (user && inAuthGroup) {
@@ -45,6 +49,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = () => {
     setUser(MOCK_USER);
+    
+    if (user?.role === "worker") {
+      router.push("/(tabs)/worker-dashboard")
+    } else if (user?.role === "user") {
+      router.push("/(tabs)/home")
+    }
   };
 
   const signOut = () => {

@@ -1,12 +1,13 @@
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 
-type Status = 'Complete' | 'In Progress';
+export type Status = 'Complete' | 'In Progress' | 'To Do';
 
 export interface ServiceRequest {
   id: string;
   title: string;
   status: Status;
   description?: string;
+  images?: string[]
 }
 
 interface RequestContextType {

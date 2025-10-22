@@ -8,19 +8,19 @@ import { RequestProvider } from '../context/RequestContext';
 
 // navigation logic
 const RootNavigationLayout = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  
 
   useEffect(() => {
     const inTabsGroup = segments[0] === '(tabs)';
 
-    if (isAuthenticated && !inTabsGroup) {
-      router.replace('/home');
-    } else if (!isAuthenticated && inTabsGroup) {
+    if (!isAuthenticated && inTabsGroup) {
       router.replace('/');
     }
-  }, [isAuthenticated, segments, router]);
+    
+  }, [isAuthenticated, segments, router, user]);
 
   return (
       <Stack screenOptions={{ headerShown: false }}>

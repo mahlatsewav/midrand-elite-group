@@ -1,4 +1,7 @@
 /** @type {import('tailwindcss').Config} */
+const colors = require("tailwindcss/colors")
+
+
 module.exports = {
   content: [
     './App.{js,jsx,ts,tsx}',
@@ -9,6 +12,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        ...colors,
         'brand-dark': '#121212',
         'brand-blue': '#007AFF',
         'brand-light-blue': '#3B82F6',
