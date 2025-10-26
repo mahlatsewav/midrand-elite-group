@@ -1,50 +1,99 @@
-# Welcome to your Expo app 👋
+# Midrand Elite Group (MEG) Mobile Application
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+## Overview
 
-## Get started
+The Midrand Elite Group (MEG) Mobile Application is a cross-platform solution designed to connect informal workers with local job opportunities. Built as part of a Bachelor of Science in Information Technology: Mobile Application and Web Services mini-dissertation at Eduvos, this app addresses the inefficiency in job matching within informal sectors. The prototype features user registration, service request creation, worker assignment, and real-time updates, leveraging modern mobile development tools and cloud services.
 
-1. Install dependencies
+### Key Features
+- **User Authentication**: Role-based sign-in/up/out for clients and workers using Firebase Authentication.
+- **Service Request Management**: Create, read, update, and delete (CRUD) requests with real-time syncing via Firestore.
+- **Responsive UI**: Dark-themed layouts designed with NativeWind, adaptable to Android and iOS.
+- **Real-Time Updates**: Live job assignment and status changes using Firebase's real-time database.
 
-   ```bash
+### Technologies Used
+- **React Native** with **Expo**: For cross-platform mobile development.
+- **NativeWind**: For Tailwind CSS-inspired styling.
+- **Expo Router**: For navigation management.
+- **Firebase**: For authentication, Firestore database, and storage.
+
+### Team Members
+- Mahlatse Lepako
+- Thabiso Mosime
+- Lilian Mabunda
+- Mukona Musia
+- Mehlika Ebrar Uluçay
+- Siyabonga Phakathi 
+
+### Supervisor
+- Sewisha Thabo Lehong
+
+## Installation
+Follow these steps to set up the project locally:
+
+### Prerequisites
+- Node.js (v16.x or later)
+- Expo CLI (`npm install -g expo-cli`)
+- Firebase account and project setup
+- Android/iOS emulator or physical device
+
+### Steps
+1. **Clone the Repository**
+   git clone https://github.com/your-username/meg-mobile-app.git
+   cd meg-mobile-app
+
+2. **Install Dependencies**
    npm install
-   ```
 
-2. Start the app
+2. **Configure Firebase**
+- Create a Firebase project at Firebase Console.
+- Enable Authentication (Email/Password) and Firestore.
+- Set up Firebase Storage for image uploads.
+- Download the google-services.json (Android) and GoogleService-Info.plist (iOS) files and place them in the respective project folders (e.g., android/app/ and ios/).
+- Update firebase.js with your Firebase configuration:
 
-   ```bash
-   npx expo start
-   ```
+   import { initializeApp } from 'firebase/app';
+   import { getAuth } from 'firebase/auth';
+   import { getFirestore } from 'firebase/firestore';
+   import { getStorage } from 'firebase/storage';
 
-In the output, you'll find options to open the app in a
+   const firebaseConfig = {
+   apiKey: "your-api-key",
+   authDomain: "your-auth-domain",
+   projectId: "your-project-id",
+   storageBucket: "your-storage-bucket",
+   messagingSenderId: "your-sender-id",
+   appId: "your-app-id"
+   };
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+   const app = initializeApp(firebaseConfig);
+   export const auth = getAuth(app);
+   export const db = getFirestore(app);
+   export const storage = getStorage(app);
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+4. **Start the Development Server** 
+- expo start
+- Use the Expo Go app on a physical device or an emulator to preview the app.
+- Press a (Android) or i (iOS) to launch in an emulator.
 
-## Get a fresh project
+### Usage
+Key Screens:
+- Sign In/Sign Up: Authenticate users with role selection (client/worker).
+- Home (Client Dashboard): View and create service requests.
+- Worker Dashboard: View and accept available jobs.
+- New Request: Submit requests with optional image uploads.
+- Profile: View user details and sign out.
 
-When you're ready, run:
+### Example Workflow
+- Sign up as a "client" and create a request (e.g., "House Cleaning").
+- Sign in as a "worker" to view and accept the request.
+- Monitor real-time updates as the status changes (e.g., "To Do" to "In Progress").
 
-```bash
-npm run reset-project
-```
+### Coding Standards
+- Use TypeScript for type safety.
+- Follow NativeWind class naming conventions.
+- Document new functions with JSDoc.
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### Contact
+For questions or collaboration, reach out to:
+Mahlatse Lepako: mahlatselepako@gmail.com
+Or open an issue on this repository.
