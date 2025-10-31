@@ -1,83 +1,46 @@
-import { useAuth } from '@/context/AuthContext';
-import { FontAwesome } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
+import { useAuth } from '../../context/AuthContext';
 import React from 'react';
 
 export default function TabLayout() {
-
-  const { user } = useAuth()
-  const role = user?.role
-
-  if(!user) return null
+  const { user } = useAuth();
+  const role = user?.role || 'user'; // Default to 'user' if not loaded
 
   return (
     <Tabs
-      key={role}
       screenOptions={{
-        tabBarActiveTintColor: '#007AFF', // brand-blue
-        tabBarInactiveTintColor: '#8E8E93', // brand-text-secondary
-        tabBarStyle: {
-          backgroundColor: '#1E1E1E', // brand-surface
-          borderTopColor: '#3A3A3C',
-          padding: 8, 
-          height: 55
-        },
-        headerStyle: {
-          backgroundColor: '#121212', // brand-dark
-        },
-        headerTintColor: '#FFFFFF', // brand-text
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        },
+        headerShown: false,
+        tabBarActiveTintColor: '#60A5FA', // brand-blue
+        tabBarInactiveTintColor: '#8E8E93',
+        tabBarStyle: { backgroundColor: '#1A1A1E' }, // brand-dark
       }}
     >
-      {/* Home : Normal users */}
-      {role === "user" ? (
-        <Tabs.Screen
-          name="home"
-          options={{
+      <Tabs.Screen
+        name="home"
+        options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <FontAwesome size={24} name="home" color={color} />,
-          tabBarButton: user?.role === 'worker' ? () => null : undefined,
-          }}
-        />
-      ) : (
-           <Tabs.Screen
-          name="home"
-          options={{
-          href: null
-          }}
-        />
-      )
-      }
-
-      {/* Home: Workers */}
-      {role === "worker" && (
-        <Tabs.Screen
-          name="worker-dashboard"
-          options={{
-          title: 'Worker Dashboard',
-          tabBarIcon: ({ color }) => <FontAwesome size={24} name="briefcase" color={color} />,
+          href: role === 'user' ? '/(tabs)/home' : null, // Hide for workers
         }}
-        />
-      )}
-
-      {/* Shared screens */}
+      />
+      <Tabs.Screen
+        name="new-request"
+        options={{
+          title: 'New Request',
+          href: role === 'user' ? '/(tabs)/new-request' : null, // Hide for workers
+        }}
+      />
+      <Tabs.Screen
+        name="worker-dashboard"
+        options={{
+          title: 'Dashboard',
+          href: role === 'worker' ? '/(tabs)/worker-dashboard' : null, // Hide for users
+        }}
+      />
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',
-          tabBarIcon: ({ color }) => <FontAwesome size={24} name="user" color={color} />,
-        }}
-      />
-
-      {/* Hide the New Request screen from the tab bar */}
-      <Tabs.Screen
-        name="new-request"
-        options={{
-          href: null,
-          // presentation: 'modal', // Open as a modal for better UX
-          title: 'New Service Request',
+          // Visible to both
         }}
       />
     </Tabs>

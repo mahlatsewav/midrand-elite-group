@@ -21,7 +21,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, firstName: string) => Promise<void>;
+  signUp: (email: string, password: string, firstName: string, role: Role) => Promise<void>; // Added role
   signOut: () => Promise<void>;
   isAuthenticated: boolean;
 }
@@ -34,10 +34,24 @@ export function useProtectedRoute(user: User | null) {
 
   useEffect(() => {
     const inAuthGroup = segments[0] === '(auth)';
+    const currentPath = segments.join('/');
+
     if (!user && !inAuthGroup) {
       router.replace('/');
     } else if (user && inAuthGroup) {
-      router.replace('/home');
+      // Redirect based on role after auth
+      if (user.role === 'worker') {
+        router.replace('/(tabs)/worker-dashboard');
+      } else {
+        router.replace('/(tabs)/home');
+      }
+    } else if (user) {
+      // role-based access
+      if (user.role !== 'worker' && currentPath.includes('worker-dashboard')) {
+        router.replace('/(tabs)/home');
+      } else if (user.role !== 'user' && (currentPath.includes('home') || currentPath.includes('new-request'))) {
+        router.replace('/(tabs)/worker-dashboard');
+      }
     }
   }, [user, segments, router]);
 }
@@ -58,6 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             role: data.role || 'user',
           };
           setUser(newUser);
+          // Role-based initial route
           if (newUser.role === 'worker') {
             router.push('/(tabs)/worker-dashboard');
           } else if (newUser.role === 'user') {
@@ -84,16 +99,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await signInWithEmailAndPassword(auth, email, password);
   };
 
-  const signUp = async (email: string, password: string, firstName: string) => {
+  const signUp = async (email: string, password: string, firstName: string, role: Role) => { // Added role
     // Create the auth user
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const firebaseUser = userCredential.user;
 
-    // Create user document in Firestore
+    // Create user document in Firestore with role
     await setDoc(doc(db, 'users', firebaseUser.uid), {
       firstName: firstName,
       email: email,
-      role: 'user', // Default role
+      role: role, // Use selected role
       createdAt: new Date().toISOString(),
     });
   };

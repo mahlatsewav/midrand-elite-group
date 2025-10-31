@@ -11,6 +11,7 @@ export default function SignUpScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [role, setRole] = useState<'user' | 'worker'>('user'); // Default to 'user'
 
   const handleSignUp = async () => {
     // Validation
@@ -18,36 +19,32 @@ export default function SignUpScreen() {
       Alert.alert('Error', 'Please enter your first name');
       return;
     }
-
     if (!email.trim()) {
       Alert.alert('Error', 'Please enter your email');
       return;
     }
-
     if (!password) {
       Alert.alert('Error', 'Please enter a password');
       return;
     }
-
     if (password.length < 6) {
       Alert.alert('Error', 'Password must be at least 6 characters');
       return;
     }
-
     if (password !== confirmPassword) {
       Alert.alert('Error', 'Passwords do not match');
       return;
     }
 
-    console.log('Attempting sign up with:', email, firstName);
+    console.log('Attempting sign up with:', email, firstName, role);
     try {
-      await signUp(email, password, firstName);
+      await signUp(email, password, firstName, role); // Pass role
       console.log('Sign up successful!');
       Alert.alert('Success', 'Account created successfully!');
     } catch (error: any) {
+      // Error handling
       console.error('Sign-up error:', error);
       let errorMessage = 'An error occurred during sign up';
-      
       switch (error.code) {
         case 'auth/email-already-in-use':
           errorMessage = 'This email is already registered';
@@ -64,7 +61,6 @@ export default function SignUpScreen() {
         default:
           errorMessage = error.message || 'Sign up failed';
       }
-      
       Alert.alert('Sign Up Error', errorMessage);
     }
   };
@@ -109,13 +105,30 @@ export default function SignUpScreen() {
         />
         
         <TextInput
-          className="w-full bg-brand-surface text-brand-text p-4 rounded-lg mb-6"
+          className="w-full bg-brand-surface text-brand-text p-4 rounded-lg mb-4"
           placeholder="Confirm Password"
           placeholderTextColor="#8E8E93"
           secureTextEntry
           value={confirmPassword}
           onChangeText={setConfirmPassword}
         />
+
+        {/* Role Selection */}
+        <Text className="text-brand-text text-lg font-semibold mb-2 w-full">Account Type:</Text>
+        <View className="flex-row w-full mb-6">
+          <TouchableOpacity
+            className={`flex-1 p-4 rounded-l-lg items-center ${role === 'user' ? 'bg-brand-blue' : 'bg-brand-surface'}`}
+            onPress={() => setRole('user')}
+          >
+            <Text className={`${role === 'user' ? 'text-white' : 'text-brand-text'} font-bold`}>Client</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            className={`flex-1 p-4 rounded-r-lg items-center ${role === 'worker' ? 'bg-brand-blue' : 'bg-brand-surface'}`}
+            onPress={() => setRole('worker')}
+          >
+            <Text className={`${role === 'worker' ? 'text-white' : 'text-brand-text'} font-bold`}>Worker</Text>
+          </TouchableOpacity>
+        </View>
         
         <TouchableOpacity
           className="w-full bg-brand-blue p-4 rounded-lg items-center mb-4"
