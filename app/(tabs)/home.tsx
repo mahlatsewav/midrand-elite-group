@@ -1,15 +1,13 @@
-import { View, Text, TouchableOpacity, FlatList, SafeAreaView } from 'react-native';
-import {  } from 'nativewind';
+import { View, Text, TouchableOpacity, FlatList, SafeAreaView, ActivityIndicator } from 'react-native';
 import { useAuth } from '../../context/AuthContext';
 import { useRequests } from '../../context/RequestContext';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import RequestCard from '@/components/ui/RequestCard';
-
-
+import React from 'react';
 
 export default function HomeScreen() {
   const { user } = useAuth();
-  const { requests } = useRequests();
+  const { requests, loading } = useRequests();
   const router = useRouter();
 
   return (
@@ -23,17 +21,26 @@ export default function HomeScreen() {
           My Service Requests
         </Text>
 
-        <FlatList
-          data={requests}
-          renderItem={({ item }) => <RequestCard item={item} />}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={{ flexGrow: 1 }}
-          ListEmptyComponent={
-            <View className="flex-1 justify-center items-center">
-              <Text className="text-brand-text-secondary">No requests yet.</Text>
-            </View>
-          }
-        />
+        {loading ? (
+          <View className="flex-1 justify-center items-center">
+            <ActivityIndicator size="large" color="#60A5FA" />
+            <Text className="text-brand-text-secondary mt-4">Loading requests...</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={requests}
+            renderItem={({ item }) => <RequestCard item={item} />}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={{ flexGrow: 1 }}
+            ListEmptyComponent={
+              <View className="flex-1 justify-center items-center">
+                <Text className="text-brand-text-secondary text-center">
+                  No requests yet.{'\n'}Create your first service request!
+                </Text>
+              </View>
+            }
+          />
+        )}
 
         <TouchableOpacity
           className="bg-brand-blue p-4 rounded-lg items-center mt-4"

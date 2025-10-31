@@ -1,29 +1,63 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, Alert, ScrollView } from 'react-native';
-import {  } from 'nativewind';
+import { View, Text, TextInput, TouchableOpacity, SafeAreaView, Alert, ScrollView, ActivityIndicator } from 'react-native';
 import { useRequests } from '../../context/RequestContext';
 import { useRouter } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
+import React from 'react';
 
 export default function NewRequestScreen() {
   const { addRequest } = useRequests();
   const router = useRouter();
   const [serviceType, setServiceType] = useState('');
   const [description, setDescription] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!serviceType.trim()) {
       Alert.alert('Validation Error', 'Service Type is required.');
       return;
     }
 
-    addRequest({ title: serviceType, description });
-    router.back(); // Go back to the home screen
+    if (!description.trim()) {
+      Alert.alert('Validation Error', 'Description is required.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      await addRequest({ 
+        title: serviceType, 
+        description 
+      });
+      
+      Alert.alert(
+        'Success', 
+        'Your service request has been submitted!',
+        [
+          {
+            text: 'OK',
+            onPress: () => router.back()
+          }
+        ]
+      );
+    } catch (error: any) {
+      console.error('Error submitting request:', error);
+      Alert.alert(
+        'Error', 
+        'Failed to submit your request. Please try again.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+     
   };
 
   return (
     <SafeAreaView className="flex-1 bg-brand-dark">
       <ScrollView className="p-6">
+        <Text className="text-brand-text text-2xl font-bold mb-6">New Service Request</Text>
+
         <Text className="text-brand-text text-lg font-semibold mb-2">Service Type:</Text>
         <TextInput
           className="w-full bg-brand-surface text-brand-text p-4 rounded-lg mb-4"
@@ -31,6 +65,7 @@ export default function NewRequestScreen() {
           placeholderTextColor="#8E8E93"
           value={serviceType}
           onChangeText={setServiceType}
+          editable={!isSubmitting}
         />
 
         <Text className="text-brand-text text-lg font-semibold mb-2">Description:</Text>
@@ -42,6 +77,7 @@ export default function NewRequestScreen() {
           textAlignVertical="top"
           value={description}
           onChangeText={setDescription}
+          editable={!isSubmitting}
         />
 
         <View className="flex-row justify-start items-center mb-6">
@@ -53,16 +89,24 @@ export default function NewRequestScreen() {
           </View>
         </View>
 
-        <TouchableOpacity className="bg-brand-surface p-3 rounded-lg items-center flex-row justify-center mb-8">
-            <FontAwesome name="upload" size={16} color="#FFFFFF" />
-            <Text className="text-white font-bold ml-2">Upload Photo(s)</Text>
+        <TouchableOpacity 
+          className="bg-brand-surface p-3 rounded-lg items-center flex-row justify-center mb-8"
+          disabled={isSubmitting}
+        >
+          <FontAwesome name="upload" size={16} color="#FFFFFF" />
+          <Text className="text-white font-bold ml-2">Upload Photo(s)</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          className="w-full bg-brand-blue p-4 rounded-lg items-center"
+          className={`w-full p-4 rounded-lg items-center ${isSubmitting ? 'bg-gray-500' : 'bg-brand-blue'}`}
           onPress={handleSubmit}
+          disabled={isSubmitting}
         >
-          <Text className="text-white font-bold text-lg">Submit Request</Text>
+          {isSubmitting ? (
+            <ActivityIndicator color="#ffffff" />
+          ) : (
+            <Text className="text-white font-bold text-lg">Submit Request</Text>
+          )}
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
