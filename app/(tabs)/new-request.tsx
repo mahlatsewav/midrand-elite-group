@@ -50,7 +50,7 @@ export default function NewRequestScreen() {
     } finally {
       setIsSubmitting(false);
     }
-     
+   router.back();  
   };
 
   return (
