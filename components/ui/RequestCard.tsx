@@ -38,6 +38,17 @@ export default function RequestCard({ item }: RequestCardProps) {
     });
   };
 
+  const formatLocation = () => {
+    if (!item.location) {
+      return 'Location not provided';
+    }
+    const { address, suburb, city } = item.location;
+    if (suburb) {
+      return `${address}, ${suburb}, ${city}`;
+    }
+    return `${address}, ${city}`;
+  };
+
   return (
     <View className="bg-brand-surface rounded-lg p-4 mb-4">
       <View className="flex-row justify-between items-start mb-2">
@@ -54,6 +65,20 @@ export default function RequestCard({ item }: RequestCardProps) {
       <Text className="text-brand-text-secondary mb-3" numberOfLines={2}>
         {item.description}
       </Text>
+
+      <View className="flex-row items-center mb-2">
+        <FontAwesome name="map-marker" size={14} color="#8E8E93" />
+        <Text className="text-brand-text-secondary ml-2 text-sm" numberOfLines={1}>
+          {formatLocation()}
+        </Text>
+      </View>
+
+      <View className="flex-row items-center mb-2">
+        <FontAwesome name="phone" size={14} color="#8E8E93" />
+        <Text className="text-brand-text-secondary ml-2 text-sm">
+          {item.clientPhone}
+        </Text>
+      </View>
 
       {item.workerName && (
         <View className="flex-row items-center mb-2">

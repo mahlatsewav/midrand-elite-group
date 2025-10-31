@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, Alert, ActivityIndicator, Linking } from 'react-native';
 import { ServiceRequest, useRequests } from '@/context/RequestContext';
 import { FontAwesome } from '@expo/vector-icons';
 
@@ -70,6 +70,22 @@ export default function RequestServiceCard({ item }: RequestServiceCardProps) {
     }
   };
 
+  const handleCallClient = () => {
+    const phoneNumber = item.clientPhone.replace(/\s/g, '');
+    Linking.openURL(`tel:${phoneNumber}`);
+  };
+
+  const formatLocation = () => {
+    if (!item.location) {
+      return 'Location not provided';
+    }
+    const { address, suburb, city } = item.location;
+    if (suburb) {
+      return `${address}, ${suburb}, ${city}`;
+    }
+    return `${address}, ${city}`;
+  };
+
   return (
     <View className="bg-brand-surface rounded-lg p-4 mb-4">
       <View className="flex-row justify-between items-start mb-2">
@@ -88,17 +104,37 @@ export default function RequestServiceCard({ item }: RequestServiceCardProps) {
       </Text>
 
       <View className="flex-row items-center mb-2">
+        <FontAwesome name="map-marker" size={14} color="#8E8E93" />
+        <Text className="text-brand-text-secondary ml-2 text-sm flex-1" numberOfLines={2}>
+          {formatLocation()}
+        </Text>
+      </View>
+
+      <View className="flex-row items-center mb-2">
         <FontAwesome name="user" size={14} color="#8E8E93" />
         <Text className="text-brand-text-secondary ml-2 text-sm">
           Client: {item.clientName}
         </Text>
       </View>
 
-      <View className="flex-row items-center mb-4">
-        <FontAwesome name="calendar" size={14} color="#8E8E93" />
-        <Text className="text-brand-text-secondary ml-2 text-sm">
-          {formatDate(item.createdAt)}
-        </Text>
+      <View className="flex-row items-center justify-between mb-4">
+        <View className="flex-row items-center flex-1">
+          <FontAwesome name="calendar" size={14} color="#8E8E93" />
+          <Text className="text-brand-text-secondary ml-2 text-sm">
+            {formatDate(item.createdAt)}
+          </Text>
+        </View>
+        
+        {/* Call Client Button - Only show if worker has accepted */}
+        {item.status !== 'pending' && (
+          <TouchableOpacity
+            className="bg-green-600 px-4 py-2 rounded-lg flex-row items-center"
+            onPress={handleCallClient}
+          >
+            <FontAwesome name="phone" size={16} color="#FFFFFF" />
+            <Text className="text-white font-bold ml-2">Call Client</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Action buttons based on status */}

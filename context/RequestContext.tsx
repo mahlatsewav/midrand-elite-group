@@ -22,6 +22,12 @@ export interface ServiceRequest {
   clientId: string;
   clientName: string;
   clientEmail: string;
+  clientPhone?: string;
+  location?: {
+    address: string;
+    city: string;
+    suburb?: string;
+  };
   workerId?: string;
   workerName?: string;
   status: RequestStatus;
@@ -32,7 +38,17 @@ export interface ServiceRequest {
 
 interface RequestContextType {
   requests: ServiceRequest[];
-  addRequest: (request: { title: string; description: string; photoUrls?: string[] }) => Promise<void>;
+  addRequest: (request: { 
+    title: string; 
+    description: string; 
+    photoUrls?: string[];
+    clientPhone: string;
+    location: {
+      address: string;
+      city: string;
+      suburb?: string;
+    };
+  }) => Promise<void>;
   updateRequestStatus: (requestId: string, status: RequestStatus, workerId?: string) => Promise<void>;
   acceptRequest: (requestId: string) => Promise<void>;
   loading: boolean;
@@ -58,6 +74,7 @@ export function RequestProvider({ children }: { children: ReactNode }) {
     let q;
     
     if (user.role === 'worker') {
+      // Workers see all pending requests OR requests assigned to them
       console.log('Worker query: fetching all requests');
       q = query(
         collection(db, 'serviceRequests')
@@ -112,7 +129,17 @@ export function RequestProvider({ children }: { children: ReactNode }) {
     };
   }, [user]);
 
-  const addRequest = async (request: { title: string; description: string; photoUrls?: string[] }) => {
+  const addRequest = async (request: { 
+    title: string; 
+    description: string; 
+    photoUrls?: string[];
+    clientPhone: string;
+    location: {
+      address: string;
+      city: string;
+      suburb?: string;
+    };
+  }) => {
     if (!user) {
       throw new Error('User must be authenticated to add a request');
     }
@@ -124,6 +151,8 @@ export function RequestProvider({ children }: { children: ReactNode }) {
         clientId: user.id,
         clientName: user.firstName,
         clientEmail: user.email,
+        clientPhone: request.clientPhone,
+        location: request.location,
         status: 'pending' as RequestStatus,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
