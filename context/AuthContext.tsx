@@ -33,7 +33,7 @@ export function useProtectedRoute(user: User | null) {
   const router = useRouter();
 
   useEffect(() => {
-    const inAuthGroup = segments[0] === '(auth)';
+    const inAuthGroup = segments[0] as string === '(auth)';
     const currentPath = segments.join('/');
 
     if (!user && !inAuthGroup) {

@@ -1,5 +1,5 @@
 import { View, Text, SafeAreaView, TouchableOpacity } from 'react-native';
-import {  } from 'nativewind';
+import { } from 'nativewind';
 import { useAuth } from '../../context/AuthContext';
 
 export default function ProfileScreen() {

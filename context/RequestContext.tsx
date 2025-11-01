@@ -12,6 +12,8 @@ import {
   Timestamp 
 } from 'firebase/firestore';
 import { useAuth } from './AuthContext';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storage } from '../firebase';
 
 export type RequestStatus = 'pending' | 'accepted' | 'in-progress' | 'completed' | 'cancelled';
 
@@ -129,6 +131,31 @@ export function RequestProvider({ children }: { children: ReactNode }) {
     };
   }, [user]);
 
+  const uploadImageToFirebase = async (uris: string[]) => {
+    const urls: string[] = [];
+
+    for (const uri of uris) {
+      try {
+        const response = await fetch(uri);
+      const blob = await response.blob();
+
+      const fileName = `requests/${Date.now()}-${Math.random()
+        .toString(36)
+        .substring(7)}.jpg`;
+
+      const storageRef = ref(storage, fileName);
+      await uploadBytes(storageRef, blob);
+      const downloadUrl = await getDownloadURL(storageRef);
+
+      urls.push(downloadUrl);
+      } catch (err) {
+         console.error('Error uploading image:', err);
+      }
+    }
+
+     return urls;
+  }
+
   const addRequest = async (request: { 
     title: string; 
     description: string; 
@@ -139,12 +166,19 @@ export function RequestProvider({ children }: { children: ReactNode }) {
       city: string;
       suburb?: string;
     };
+
   }) => {
     if (!user) {
       throw new Error('User must be authenticated to add a request');
     }
 
     try {
+
+      let uploadedUrls: string[] = [];
+      if (request.photoUrls && request.photoUrls.length > 0) {
+        uploadedUrls = await uploadImageToFirebase(request.photoUrls)
+      }
+
       const newRequest = {
         title: request.title,
         description: request.description,

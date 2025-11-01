@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, Alert, ScrollView, ActivityIndicator } from 'react-native';
-import { useRequests } from '../../context/RequestContext';
-import { useRouter } from 'expo-router';
 import { FontAwesome } from '@expo/vector-icons';
-import React from 'react';
+import * as ImagePicker from "expo-image-picker";
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { ActivityIndicator, Alert, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRequests } from '../../context/RequestContext';
 
 export default function NewRequestScreen() {
   const { addRequest } = useRequests();
@@ -15,6 +16,29 @@ export default function NewRequestScreen() {
   const [city, setCity] = useState('');
   const [suburb, setSuburb] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [images, setImages] = useState<string[]>([]);
+
+  const pickImages = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync()
+
+    if (status !== 'granted') {
+      Alert.alert('Permission Required', 'Please allow access to your gallery.')
+      return;
+    }    
+      
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: true,
+      allowsEditing: true,
+      quality: 0.8
+    });
+
+    if (!result.canceled) {
+      const selected = result.assets.map((asset) => asset.uri);
+      setImages((prev) => [...prev, ...selected])
+    }
+  }
 
   const handleSubmit = async () => {
     if (!serviceType.trim()) {
@@ -60,7 +84,8 @@ export default function NewRequestScreen() {
           address: address.trim(),
           city: city.trim(),
           suburb: suburb.trim() || undefined,
-        }
+        }, 
+        photoUrls: images, 
       });
       
       Alert.alert(
@@ -86,8 +111,8 @@ export default function NewRequestScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-brand-dark">
-      <ScrollView className="p-6">
+    <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-brand-dark">
+      <ScrollView className="p-2">
         <Text className="text-brand-text text-2xl font-bold mb-6">New Service Request</Text>
 
         <Text className="text-brand-text text-lg font-semibold mb-2">Service Type:</Text>
@@ -153,25 +178,39 @@ export default function NewRequestScreen() {
           editable={!isSubmitting}
         />
 
-        <View className="flex-row justify-start items-center mb-6">
-          <View className="w-20 h-20 bg-brand-surface rounded-lg mr-3 justify-center items-center">
-            <FontAwesome name="image" size={24} color="#8E8E93" />
-          </View>
-          <View className="w-20 h-20 bg-brand-surface rounded-lg justify-center items-center">
-            <FontAwesome name="image" size={24} color="#8E8E93" />
-          </View>
-        </View>
+        {images.length > 0 ? (
+  // Show preview grid when images are selected
+  <View className="flex-row flex-wrap mb-4">
+    {images.map((uri, index) => (
+      <Image
+        key={index}
+        source={{ uri }}
+        className="w-24 h-24 rounded-lg mr-2 mb-2"
+      />
+    ))}
+  </View>
+) : (
+  // Show placeholder when no images selected
+  <View className="flex-row justify-start items-center mb-6">
+    <View className="w-20 h-20 bg-brand-surface rounded-lg mr-3 justify-center items-center">
+      <FontAwesome name="image" size={24} color="#8E8E93" />
+    </View>
+  </View>
+)
+          
+       }
 
         <TouchableOpacity 
           className="bg-brand-surface p-3 rounded-lg items-center flex-row justify-center mb-8"
           disabled={isSubmitting}
+          onPress={pickImages}
         >
           <FontAwesome name="upload" size={16} color="#FFFFFF" />
           <Text className="text-white font-bold ml-2">Upload Photo(s)</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          className={`w-full p-4 rounded-lg items-center ${isSubmitting ? 'bg-gray-500' : 'bg-brand-blue'}`}
+          className={`w-full p-3 mb-2 rounded-lg items-center ${isSubmitting ? 'bg-gray-500' : 'bg-brand-blue'}`}
           onPress={handleSubmit}
           disabled={isSubmitting}
         >
