@@ -93,15 +93,15 @@ export function RequestProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       console.log('Snapshot received, size:', snapshot.size);
       const requestsData: ServiceRequest[] = [];
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        console.log('Document:', doc.id, 'Data:', data);
+      snapshot.forEach((docSnapshot) => {
+        const data = docSnapshot.data();
+        console.log('Document:', docSnapshot.id, 'Data:', data);
         
         // If worker, filter to show pending or their assigned requests
         if (user.role === 'worker') {
           if (data.status === 'pending' || data.workerId === user.id) {
             requestsData.push({
-              id: doc.id,
+              id: docSnapshot.id,
               ...data,
               createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
               updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
@@ -110,7 +110,7 @@ export function RequestProvider({ children }: { children: ReactNode }) {
         } else {
           // Client sees all their requests
           requestsData.push({
-            id: doc.id,
+            id: docSnapshot.id,
             ...data,
             createdAt: data.createdAt?.toDate?.()?.toISOString() || new Date().toISOString(),
             updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
@@ -136,24 +136,26 @@ export function RequestProvider({ children }: { children: ReactNode }) {
 
     for (const uri of uris) {
       try {
+        console.log('Uploading image:', uri);
         const response = await fetch(uri);
-      const blob = await response.blob();
+        const blob = await response.blob();
 
-      const fileName = `requests/${Date.now()}-${Math.random()
-        .toString(36)
-        .substring(7)}.jpg`;
+        const fileName = `requests/${Date.now()}-${Math.random()
+          .toString(36)
+          .substring(7)}.jpg`;
 
-      const storageRef = ref(storage, fileName);
-      await uploadBytes(storageRef, blob);
-      const downloadUrl = await getDownloadURL(storageRef);
-
-      urls.push(downloadUrl);
+        const storageRef = ref(storage, fileName);
+        await uploadBytes(storageRef, blob);
+        const downloadUrl = await getDownloadURL(storageRef);
+        
+        console.log('Image uploaded successfully:', downloadUrl);
+        urls.push(downloadUrl);
       } catch (err) {
-         console.error('Error uploading image:', err);
+        console.error('Error uploading image:', err);
       }
     }
 
-     return urls;
+    return urls;
   }
 
   const addRequest = async (request: { 
@@ -166,17 +168,19 @@ export function RequestProvider({ children }: { children: ReactNode }) {
       city: string;
       suburb?: string;
     };
-
   }) => {
     if (!user) {
       throw new Error('User must be authenticated to add a request');
     }
 
     try {
+      console.log('Adding request with photos:', request.photoUrls?.length || 0);
 
       let uploadedUrls: string[] = [];
       if (request.photoUrls && request.photoUrls.length > 0) {
-        uploadedUrls = await uploadImageToFirebase(request.photoUrls)
+        console.log('Uploading images to Firebase Storage...');
+        uploadedUrls = await uploadImageToFirebase(request.photoUrls);
+        console.log('Images uploaded, URLs:', uploadedUrls);
       }
 
       const newRequest = {
@@ -190,11 +194,11 @@ export function RequestProvider({ children }: { children: ReactNode }) {
         status: 'pending' as RequestStatus,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
-        photoUrls: request.photoUrls || [],
+        photoUrls: uploadedUrls, // Use uploaded URLs from Firebase Storage
       };
 
-      await addDoc(collection(db, 'serviceRequests'), newRequest);
-      console.log('Service request added successfully');
+      const docRef = await addDoc(collection(db, 'serviceRequests'), newRequest);
+      console.log('Service request added successfully with ID:', docRef.id);
     } catch (error) {
       console.error('Error adding service request:', error);
       throw error;
@@ -203,6 +207,8 @@ export function RequestProvider({ children }: { children: ReactNode }) {
 
   const updateRequestStatus = async (requestId: string, status: RequestStatus, workerId?: string) => {
     try {
+      console.log('Updating request status:', { requestId, status, workerId });
+      
       const updateData: any = {
         status,
         updatedAt: Timestamp.now(),
@@ -214,8 +220,9 @@ export function RequestProvider({ children }: { children: ReactNode }) {
         updateData.workerName = workerName;
       }
 
-      await updateDoc(doc(db, 'serviceRequests', requestId), updateData);
-      console.log('Request status updated successfully');
+      const docRef = doc(db, 'serviceRequests', requestId);
+      await updateDoc(docRef, updateData);
+      console.log('Request status updated successfully to:', status);
     } catch (error) {
       console.error('Error updating request status:', error);
       throw error;
@@ -227,6 +234,7 @@ export function RequestProvider({ children }: { children: ReactNode }) {
       throw new Error('Only workers can accept requests');
     }
 
+    console.log('Worker accepting request:', requestId);
     await updateRequestStatus(requestId, 'accepted', user.id);
   };
 

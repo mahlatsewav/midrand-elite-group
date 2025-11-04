@@ -1,6 +1,7 @@
 import { View, Text, SafeAreaView, TouchableOpacity } from 'react-native';
 import { } from 'nativewind';
 import { useAuth } from '../../context/AuthContext';
+import React from 'react';
 
 export default function ProfileScreen() {
   const { signOut, user } = useAuth();
