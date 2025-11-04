@@ -2,28 +2,115 @@ import { FontAwesome } from '@expo/vector-icons';
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { ActivityIndicator, Alert, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, ScrollView, Text, TextInput, TouchableOpacity, View, Modal, FlatList } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRequests } from '../../context/RequestContext';
+
+// Service types 
+interface ServiceType {
+  id: string;
+  name: string;
+  basePrice: number;
+  unit: string;
+  description: string;
+}
+
+const SERVICE_TYPES: ServiceType[] = [
+  {
+    id: 'painting-interior',
+    name: 'Interior Painting',
+    basePrice: 150,
+    unit: 'per room',
+    description: 'Professional interior painting services'
+  },
+  {
+    id: 'painting-exterior',
+    name: 'Exterior Painting',
+    basePrice: 250,
+    unit: 'per wall',
+    description: 'Exterior wall painting and finishing'
+  },
+  {
+    id: 'renovation-kitchen',
+    name: 'Kitchen Renovation',
+    basePrice: 15000,
+    unit: 'per project',
+    description: 'Complete kitchen renovation and remodeling'
+  },
+  {
+    id: 'renovation-bathroom',
+    name: 'Bathroom Renovation',
+    basePrice: 12000,
+    unit: 'per project',
+    description: 'Full bathroom renovation services'
+  },
+  {
+    id: 'renovation-general',
+    name: 'General Renovation',
+    basePrice: 8000,
+    unit: 'per project',
+    description: 'General home renovation and repairs'
+  },
+  {
+    id: 'cleaning-residential',
+    name: 'Residential Cleaning',
+    basePrice: 350,
+    unit: 'per session',
+    description: 'Deep cleaning for homes'
+  },
+  {
+    id: 'cleaning-commercial',
+    name: 'Commercial Cleaning',
+    basePrice: 800,
+    unit: 'per session',
+    description: 'Professional office and commercial cleaning'
+  },
+  {
+    id: 'pest-control-general',
+    name: 'General Pest Control',
+    basePrice: 600,
+    unit: 'per treatment',
+    description: 'Pest inspection and treatment'
+  },
+  {
+    id: 'pest-control-fumigation',
+    name: 'Fumigation Services',
+    basePrice: 1200,
+    unit: 'per property',
+    description: 'Complete property fumigation'
+  },
+];
 
 export default function NewRequestScreen() {
   const { addRequest } = useRequests();
   const router = useRouter();
-  const [serviceType, setServiceType] = useState('');
+  
+  // Form state
+  const [selectedService, setSelectedService] = useState<ServiceType | null>(null);
   const [description, setDescription] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
   const [suburb, setSuburb] = useState('');
+  const [quantity, setQuantity] = useState('1');
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const [images, setImages] = useState<string[]>([]);
+  
+  // Dropdown state
+  const [showServicePicker, setShowServicePicker] = useState(false);
+
+  // Calculate total cost
+  const calculateTotal = (): number => {
+    if (!selectedService) return 0;
+    const qty = parseInt(quantity) || 1;
+    return selectedService.basePrice * qty;
+  };
 
   const pickImages = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync()
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
 
     if (status !== 'granted') {
-      Alert.alert('Permission Required', 'Please allow access to your gallery.')
+      Alert.alert('Permission Required', 'Please allow access to your gallery.');
       return;
     }    
       
@@ -36,27 +123,27 @@ export default function NewRequestScreen() {
 
     if (!result.canceled) {
       const selected = result.assets.map((asset) => asset.uri);
-      setImages((prev) => [...prev, ...selected])
+      setImages((prev) => [...prev, ...selected]);
     }
-  }
+  };
 
   const handleSubmit = async () => {
-    if (!serviceType.trim()) {
-      Alert.alert('Validation Error', 'Service Type is required.');
+    // Validation
+    if (!selectedService) {
+      Alert.alert('Validation Error', 'Please select a service type.');
       return;
     }
 
-    if (!description.trim()) {
-      Alert.alert('Validation Error', 'Description is required.');
-      return;
-    }
+    // if (!description.trim()) {
+    //   Alert.alert('Validation Error', 'Description is required.');
+    //   return;
+    // }
 
     if (!phoneNumber.trim()) {
       Alert.alert('Validation Error', 'Phone number is required.');
       return;
     }
 
-    // Basic phone validation (South African format)
     const phoneRegex = /^(\+27|0)[6-8][0-9]{8}$/;
     if (!phoneRegex.test(phoneNumber.replace(/\s/g, ''))) {
       Alert.alert('Validation Error', 'Please enter a valid South African phone number (e.g., 0821234567 or +27821234567)');
@@ -73,12 +160,21 @@ export default function NewRequestScreen() {
       return;
     }
 
+    const qty = parseInt(quantity);
+    if (!qty || qty < 1) {
+      Alert.alert('Validation Error', 'Please enter a valid quantity (minimum 1).');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
+      const totalCost = calculateTotal();
+      const enhancedDescription = `${description}\n\nService: ${selectedService.name}\nQuantity: ${qty} ${selectedService.unit}\nEstimated Cost: R${totalCost.toFixed(2)}`;
+
       await addRequest({ 
-        title: serviceType, 
-        description,
+        title: selectedService.name, 
+        description: enhancedDescription,
         clientPhone: phoneNumber,
         location: {
           address: address.trim(),
@@ -107,25 +203,59 @@ export default function NewRequestScreen() {
     } finally {
       setIsSubmitting(false);
     }
-    router.back(); 
+    router.back();
   };
 
   return (
     <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-brand-dark">
-      <ScrollView className="p-2">
+      <ScrollView className="p-6">
         <Text className="text-brand-text text-2xl font-bold mb-6">New Service Request</Text>
 
+        {/* Service Type Dropdown */}
         <Text className="text-brand-text text-lg font-semibold mb-2">Service Type:</Text>
-        <TextInput
-          className="w-full bg-brand-surface text-brand-text p-4 rounded-lg mb-4"
-          placeholder="e.g., House Painting, Plumbing Fix"
-          placeholderTextColor="#8E8E93"
-          value={serviceType}
-          onChangeText={setServiceType}
-          editable={!isSubmitting}
-        />
+        <TouchableOpacity
+          className="w-full bg-brand-surface text-brand-text p-4 rounded-lg mb-4 flex-row justify-between items-center"
+          onPress={() => setShowServicePicker(true)}
+          disabled={isSubmitting}
+        >
+          <Text className={selectedService ? "text-brand-text" : "text-brand-text-secondary"}>
+            {selectedService ? selectedService.name : 'Select a service...'}
+          </Text>
+          <FontAwesome name="chevron-down" size={16} color="#8E8E93" />
+        </TouchableOpacity>
 
-        <Text className="text-brand-text text-lg font-semibold mb-2">Description:</Text>
+        {/* Show service details if selected */}
+        {selectedService && (
+          <View className="bg-brand-surface p-4 rounded-lg mb-4">
+            <Text className="text-brand-text-secondary text-sm mb-1">
+              {selectedService.description}
+            </Text>
+            <Text className="text-brand-light-blue text-sm font-semibold">
+              Base Price: R{selectedService.basePrice.toFixed(2)} {selectedService.unit}
+            </Text>
+          </View>
+        )}
+
+        {/* Quantity */}
+        {selectedService && (
+          <>
+            <Text className="text-brand-text text-lg font-semibold mb-2">
+              Quantity ({selectedService.unit}):
+            </Text>
+            <TextInput
+              className="w-full bg-brand-surface text-brand-text p-4 rounded-lg mb-4"
+              placeholder="Enter quantity"
+              placeholderTextColor="#8E8E93"
+              keyboardType="numeric"
+              value={quantity}
+              onChangeText={setQuantity}
+              editable={!isSubmitting}
+            />
+          </>
+        )}
+
+        {/* Description */}
+        <Text className="text-brand-text text-lg font-semibold mb-2">Additional Details:</Text>
         <TextInput
           className="w-full bg-brand-surface text-brand-text p-4 rounded-lg mb-4 h-32"
           placeholder="Provide more details about your request..."
@@ -137,6 +267,7 @@ export default function NewRequestScreen() {
           editable={!isSubmitting}
         />
 
+        {/* Contact Number */}
         <Text className="text-brand-text text-lg font-semibold mb-2">Contact Number:</Text>
         <TextInput
           className="w-full bg-brand-surface text-brand-text p-4 rounded-lg mb-4"
@@ -148,26 +279,29 @@ export default function NewRequestScreen() {
           editable={!isSubmitting}
         />
 
+        {/* Street Address */}
         <Text className="text-brand-text text-lg font-semibold mb-2">Street Address:</Text>
         <TextInput
           className="w-full bg-brand-surface text-brand-text p-4 rounded-lg mb-4"
-          placeholder="Address"
+          placeholder="e.g., 123 Main Street"
           placeholderTextColor="#8E8E93"
           value={address}
           onChangeText={setAddress}
           editable={!isSubmitting}
         />
 
+        {/* Suburb */}
         <Text className="text-brand-text text-lg font-semibold mb-2">Suburb:</Text>
         <TextInput
           className="w-full bg-brand-surface text-brand-text p-4 rounded-lg mb-4"
-          placeholder="Suburb"
+          placeholder="e.g., Midrand"
           placeholderTextColor="#8E8E93"
           value={suburb}
           onChangeText={setSuburb}
           editable={!isSubmitting}
         />
 
+        {/* City */}
         <Text className="text-brand-text text-lg font-semibold mb-2">City:</Text>
         <TextInput
           className="w-full bg-brand-surface text-brand-text p-4 rounded-lg mb-6"
@@ -178,30 +312,27 @@ export default function NewRequestScreen() {
           editable={!isSubmitting}
         />
 
+        {/* Image Upload */}
         {images.length > 0 ? (
-  // Show preview grid when images are selected
-  <View className="flex-row flex-wrap mb-4">
-    {images.map((uri, index) => (
-      <Image
-        key={index}
-        source={{ uri }}
-        className="w-24 h-24 rounded-lg mr-2 mb-2"
-      />
-    ))}
-  </View>
-) : (
-  // Show placeholder when no images selected
-  <View className="flex-row justify-start items-center mb-6">
-    <View className="w-20 h-20 bg-brand-surface rounded-lg mr-3 justify-center items-center">
-      <FontAwesome name="image" size={24} color="#8E8E93" />
-    </View>
-  </View>
-)
-          
-       }
+          <View className="flex-row flex-wrap mb-4">
+            {images.map((uri, index) => (
+              <Image
+                key={index}
+                source={{ uri }}
+                className="w-24 h-24 rounded-lg mr-2 mb-2"
+              />
+            ))}
+          </View>
+        ) : (
+          <View className="flex-row justify-start items-center mb-6">
+            <View className="w-20 h-20 bg-brand-surface rounded-lg mr-3 justify-center items-center">
+              <FontAwesome name="image" size={24} color="#8E8E93" />
+            </View>
+          </View>
+        )}
 
         <TouchableOpacity 
-          className="bg-brand-surface p-3 rounded-lg items-center flex-row justify-center mb-8"
+          className="bg-brand-surface p-3 rounded-lg items-center flex-row justify-center mb-6"
           disabled={isSubmitting}
           onPress={pickImages}
         >
@@ -209,8 +340,39 @@ export default function NewRequestScreen() {
           <Text className="text-white font-bold ml-2">Upload Photo(s)</Text>
         </TouchableOpacity>
 
+        {/* Cost Estimate */}
+        {selectedService && (
+          <View className="bg-brand-blue/20 border-2 border-brand-blue p-4 rounded-lg mb-6">
+            <Text className="text-brand-text text-lg font-semibold mb-2">
+              Cost Estimate
+            </Text>
+            <View className="flex-row justify-between items-center mb-1">
+              <Text className="text-brand-text-secondary">
+                {selectedService.name} x {quantity}
+              </Text>
+              <Text className="text-brand-text">
+                R{(selectedService.basePrice * (parseInt(quantity) || 1)).toFixed(2)}
+              </Text>
+            </View>
+            <View className="border-t border-brand-text-secondary/30 mt-2 pt-2">
+              <View className="flex-row justify-between items-center">
+                <Text className="text-brand-text text-xl font-bold">
+                  Total Estimate:
+                </Text>
+                <Text className="text-brand-light-blue text-2xl font-bold">
+                  R{calculateTotal().toFixed(2)}
+                </Text>
+              </View>
+            </View>
+            <Text className="text-brand-text-secondary text-xs mt-2 italic">
+              * This is an estimate. Final quote will be provided after assessment.
+            </Text>
+          </View>
+        )}
+
+        {/* Submit Button */}
         <TouchableOpacity
-          className={`w-full p-3 mb-2 rounded-lg items-center ${isSubmitting ? 'bg-gray-500' : 'bg-brand-blue'}`}
+          className={`w-full p-4 mb-2 rounded-lg items-center ${isSubmitting ? 'bg-gray-500' : 'bg-brand-blue'}`}
           onPress={handleSubmit}
           disabled={isSubmitting}
         >
@@ -221,6 +383,55 @@ export default function NewRequestScreen() {
           )}
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Service Picker Modal */}
+      <Modal
+        visible={showServicePicker}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowServicePicker(false)}
+      >
+        <View className="flex-1 justify-end bg-black/50">
+          <View className="bg-brand-dark rounded-t-3xl max-h-[70%]">
+            <View className="p-4 border-b border-brand-surface flex-row justify-between items-center">
+              <Text className="text-brand-text text-xl font-bold">Select Service</Text>
+              <TouchableOpacity onPress={() => setShowServicePicker(false)}>
+                <FontAwesome name="times" size={24} color="#8E8E93" />
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={SERVICE_TYPES}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  className="p-4 border-b border-brand-surface/50"
+                  onPress={() => {
+                    setSelectedService(item);
+                    setShowServicePicker(false);
+                  }}
+                >
+                  <View className="flex-row justify-between items-start">
+                    <View className="flex-1">
+                      <Text className="text-brand-text text-lg font-semibold mb-1">
+                        {item.name}
+                      </Text>
+                      <Text className="text-brand-text-secondary text-sm mb-2">
+                        {item.description}
+                      </Text>
+                      <Text className="text-brand-light-blue text-sm font-semibold">
+                        R{item.basePrice.toFixed(2)} {item.unit}
+                      </Text>
+                    </View>
+                    {selectedService?.id === item.id && (
+                      <FontAwesome name="check-circle" size={24} color="#0A84FF" />
+                    )}
+                  </View>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
