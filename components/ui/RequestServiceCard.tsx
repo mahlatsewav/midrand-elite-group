@@ -138,7 +138,7 @@ export default function RequestServiceCard({ item }: RequestServiceCardProps) {
       </View>
 
       {/* Action buttons based on status */}
-      {item.status === 'pending' && (
+      {/* {item.status === 'pending' && (
         <TouchableOpacity
           className={`p-3 rounded-lg items-center ${isAccepting ? 'bg-gray-500' : 'bg-green-600'}`}
           onPress={handleAccept}
@@ -178,7 +178,7 @@ export default function RequestServiceCard({ item }: RequestServiceCardProps) {
             <Text className="text-white font-bold">Mark as Completed</Text>
           )}
         </TouchableOpacity>
-      )}
+      )} */}
     </View>
   );
 }
