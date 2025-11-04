@@ -203,7 +203,7 @@ export default function NewRequestScreen() {
     } finally {
       setIsSubmitting(false);
     }
-    router.back();
+   
   };
 
   return (
@@ -379,8 +379,9 @@ export default function NewRequestScreen() {
           {isSubmitting ? (
             <ActivityIndicator color="#ffffff" />
           ) : (
-            <Text className="text-white font-bold text-lg">Submit Request</Text>
-          )}
+            <Text className="text-white font-bold text-lg">Submit Request</Text>            
+          )
+          }
         </TouchableOpacity>
       </ScrollView>
 

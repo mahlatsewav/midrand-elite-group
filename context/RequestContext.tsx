@@ -194,7 +194,7 @@ export function RequestProvider({ children }: { children: ReactNode }) {
         status: 'pending' as RequestStatus,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now(),
-        photoUrls: uploadedUrls, // Use uploaded URLs from Firebase Storage
+        photoUrls: uploadedUrls,
       };
 
       const docRef = await addDoc(collection(db, 'serviceRequests'), newRequest);
