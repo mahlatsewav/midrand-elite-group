@@ -158,90 +158,87 @@ export default function NewRequestScreen() {
     setImages((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = async () => {
-    // Validation
-    if (!selectedService) {
-      Alert.alert("Validation Error", "Please select a service type.");
-      return;
-    }
+ const handleSubmit = async () => {
+  // Validation
+  if (!selectedService) {
+    Alert.alert('Validation Error', 'Please select a service type.');
+    return;
+  }
 
-    if (!phoneNumber.trim()) {
-      Alert.alert("Validation Error", "Phone number is required.");
-      return;
-    }
+  if (!phoneNumber.trim()) {
+    Alert.alert('Validation Error', 'Phone number is required.');
+    return;
+  }
 
-    const phoneRegex = /^(\+27|0)[6-8][0-9]{8}$/;
-    if (!phoneRegex.test(phoneNumber.replace(/\s/g, ""))) {
-      Alert.alert(
-        "Validation Error",
-        "Please enter a valid South African phone number (e.g., 0821234567 or +27821234567)"
-      );
-      return;
-    }
+  const phoneRegex = /^(\+27|0)[6-8][0-9]{8}$/;
+  if (!phoneRegex.test(phoneNumber.replace(/\s/g, ''))) {
+    Alert.alert('Validation Error', 'Please enter a valid South African phone number (e.g., 0821234567 or +27821234567)');
+    return;
+  }
 
-    if (!address.trim()) {
-      Alert.alert("Validation Error", "Street address is required.");
-      return;
-    }
+  if (!address.trim()) {
+    Alert.alert('Validation Error', 'Street address is required.');
+    return;
+  }
 
-    if (!city.trim()) {
-      Alert.alert("Validation Error", "City is required.");
-      return;
-    }
+  if (!city.trim()) {
+    Alert.alert('Validation Error', 'City is required.');
+    return;
+  }
 
-    const qty = parseInt(quantity);
-    if (!qty || qty < 1) {
-      Alert.alert(
-        "Validation Error",
-        "Please enter a valid quantity (minimum 1)."
-      );
-      return;
-    }
+  const qty = parseInt(quantity);
+  if (!qty || qty < 1) {
+    Alert.alert('Validation Error', 'Please enter a valid quantity (minimum 1).');
+    return;
+  }
 
-    setIsSubmitting(true);
+  setIsSubmitting(true);
 
-    try {
-      const totalCost = calculateTotal();
-      const enhancedDescription = `${description}\n\nService: ${
-        selectedService.name
-      }\nQuantity: ${qty} ${
-        selectedService.unit
-      }\nEstimated Cost: R${totalCost.toFixed(2)}`;
+  try {
+    const totalCost = calculateTotal();
+    const enhancedDescription = `${description}\n\nService: ${selectedService.name}\nQuantity: ${qty} ${selectedService.unit}\nEstimated Cost: R${totalCost.toFixed(2)}`;
 
-      await addRequest({
-        title: selectedService.name,
-        description: enhancedDescription,
-        clientPhone: phoneNumber,
-        location: {
-          address: address.trim(),
-          city: city.trim(),
-          suburb: suburb.trim() || undefined,
-        },
-        photoUrls: images,
-      });
-
-      setSelectedService(null);
-      setDescription("");
-      setPhoneNumber("");
-      setAddress("");
-      setCity("");
-      setSuburb("");
-      setQuantity("1");
-      setImages([]);
-
-      Alert.alert("Success", "Your service request has been submitted!", [
+    await addRequest({ 
+      title: selectedService.name, 
+      description: enhancedDescription,
+      clientPhone: phoneNumber,
+      location: {
+        address: address.trim(),
+        city: city.trim(),
+        suburb: suburb.trim() || undefined,
+      }, 
+      photoUrls: images, 
+    });
+    
+    setSelectedService(null);
+    setDescription('');
+    setPhoneNumber('');
+    setAddress('');
+    setCity('');
+    setSuburb('');
+    setQuantity('1');
+    setImages([]);
+    
+    Alert.alert(
+      'Success', 
+      'Your service request has been submitted!',
+      [
         {
-          text: "OK",
-          onPress: () => router.push("/(tabs)/my-requests"),
-        },
-      ]);
-    } catch (error: any) {
-      console.error("Error submitting request:", error);
-      Alert.alert("Error", "Failed to submit your request. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+          text: 'OK',
+          onPress: () => router.push('/(tabs)/my-requests')
+        }
+      ]
+    );
+  } catch (error: any) {
+    console.error('Error submitting request:', error);
+    Alert.alert(
+      'Error', 
+      'Failed to submit your request. Please try again.'
+    );
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <SafeAreaView edges={["top", "bottom"]} className="flex-1 bg-brand-dark">
