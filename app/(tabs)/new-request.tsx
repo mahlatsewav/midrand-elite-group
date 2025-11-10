@@ -1,7 +1,7 @@
 import { FontAwesome } from '@expo/vector-icons';
 import * as ImagePicker from "expo-image-picker";
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import React, { useState, useEffect } from 'react';
 import { ActivityIndicator, Alert, Image, ScrollView, Text, TextInput, TouchableOpacity, View, Modal, FlatList } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRequests } from '../../context/RequestContext';
@@ -84,6 +84,7 @@ const SERVICE_TYPES: ServiceType[] = [
 export default function NewRequestScreen() {
   const { addRequest } = useRequests();
   const router = useRouter();
+  const params = useLocalSearchParams();
   
   // Form state
   const [selectedService, setSelectedService] = useState<ServiceType | null>(null);
@@ -98,6 +99,16 @@ export default function NewRequestScreen() {
   
   // Dropdown state
   const [showServicePicker, setShowServicePicker] = useState(false);
+
+  // Pre-select service if serviceId is passed
+  useEffect(() => {
+    if (params.serviceId) {
+      const service = SERVICE_TYPES.find(s => s.id === params.serviceId);
+      if (service) {
+        setSelectedService(service);
+      }
+    }
+  }, [params.serviceId]);
 
   // Calculate total cost
   const calculateTotal = (): number => {
@@ -127,17 +138,16 @@ export default function NewRequestScreen() {
     }
   };
 
+  const removeImage = (index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async () => {
     // Validation
     if (!selectedService) {
       Alert.alert('Validation Error', 'Please select a service type.');
       return;
     }
-
-    // if (!description.trim()) {
-    //   Alert.alert('Validation Error', 'Description is required.');
-    //   return;
-    // }
 
     if (!phoneNumber.trim()) {
       Alert.alert('Validation Error', 'Phone number is required.');
@@ -190,7 +200,7 @@ export default function NewRequestScreen() {
         [
           {
             text: 'OK',
-            onPress: () => router.back()
+            onPress: () => router.push('/(tabs)/my-requests')
           }
         ]
       );
@@ -203,13 +213,21 @@ export default function NewRequestScreen() {
     } finally {
       setIsSubmitting(false);
     }
-   
   };
 
   return (
     <SafeAreaView edges={['top', 'bottom']} className="flex-1 bg-brand-dark">
       <ScrollView className="p-6">
-        <Text className="text-brand-text text-2xl font-bold mb-6">New Service Request</Text>
+        {/* Header */}
+        <View className="flex-row items-center mb-6">
+          <TouchableOpacity 
+            onPress={() => router.back()}
+            className="mr-4"
+          >
+            <FontAwesome name="arrow-left" size={24} color="#0A84FF" />
+          </TouchableOpacity>
+          <Text className="text-brand-text text-2xl font-bold">New Service Request</Text>
+        </View>
 
         {/* Service Type Dropdown */}
         <Text className="text-brand-text text-lg font-semibold mb-2">Service Type:</Text>
@@ -291,7 +309,7 @@ export default function NewRequestScreen() {
         />
 
         {/* Suburb */}
-        <Text className="text-brand-text text-lg font-semibold mb-2">Suburb:</Text>
+        <Text className="text-brand-text text-lg font-semibold mb-2">Suburb (Optional):</Text>
         <TextInput
           className="w-full bg-brand-surface text-brand-text p-4 rounded-lg mb-4"
           placeholder="e.g., Midrand"
@@ -312,22 +330,25 @@ export default function NewRequestScreen() {
           editable={!isSubmitting}
         />
 
-        {/* Image Upload */}
-        {images.length > 0 ? (
+        {/* Image Upload Section */}
+        <Text className="text-brand-text text-lg font-semibold mb-2">Photos (Optional):</Text>
+        
+        {images.length > 0 && (
           <View className="flex-row flex-wrap mb-4">
             {images.map((uri, index) => (
-              <Image
-                key={index}
-                source={{ uri }}
-                className="w-24 h-24 rounded-lg mr-2 mb-2"
-              />
+              <View key={index} className="relative mr-2 mb-2">
+                <Image
+                  source={{ uri }}
+                  className="w-24 h-24 rounded-lg"
+                />
+                <TouchableOpacity
+                  className="absolute -top-2 -right-2 bg-red-600 rounded-full p-1"
+                  onPress={() => removeImage(index)}
+                >
+                  <FontAwesome name="times" size={12} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
             ))}
-          </View>
-        ) : (
-          <View className="flex-row justify-start items-center mb-6">
-            <View className="w-20 h-20 bg-brand-surface rounded-lg mr-3 justify-center items-center">
-              <FontAwesome name="image" size={24} color="#8E8E93" />
-            </View>
           </View>
         )}
 
@@ -336,8 +357,10 @@ export default function NewRequestScreen() {
           disabled={isSubmitting}
           onPress={pickImages}
         >
-          <FontAwesome name="upload" size={16} color="#FFFFFF" />
-          <Text className="text-white font-bold ml-2">Upload Photo(s)</Text>
+          <FontAwesome name="camera" size={16} color="#0A84FF" />
+          <Text className="text-brand-text font-bold ml-2">
+            {images.length > 0 ? 'Add More Photos' : 'Add Photos'}
+          </Text>
         </TouchableOpacity>
 
         {/* Cost Estimate */}
