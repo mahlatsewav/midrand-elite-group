@@ -244,7 +244,7 @@ export default function NewRequestScreen() {
     <SafeAreaView edges={["top" , "bottom"]} className="flex-1 bg-brand-dark">
       <ScrollView className="px-6">
         {/* Header */}
-        <View className="flex-row items-center mb-6">
+        <View className="flex-row items-center mb-6" style={{paddingTop: 20}}>
           <TouchableOpacity onPress={() => router.back()} className="mr-4">
             <FontAwesome name="arrow-left" size={24} color="#0A84FF" />
           </TouchableOpacity>

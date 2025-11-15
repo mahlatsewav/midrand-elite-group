@@ -155,7 +155,7 @@ export default function HomeScreen() {
     <SafeAreaView className="flex-1 bg-brand-dark">
       <View className="p-6 flex-1">
         {/* Header */}
-        <View className="mb-6">
+        <View className="mb-6" style={{paddingTop: 20}}>
           <Text className="text-brand-text text-3xl font-bold mb-2">
             Welcome,{' '}
             <Text className="text-brand-light-blue">{user?.firstName}</Text>
