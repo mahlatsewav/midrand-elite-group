@@ -1,7 +1,10 @@
 import { useAuth } from '@/context/AuthContext'
+import { useRequests } from '@/context/RequestContext'
+import { db } from '@/firebase'
 import { Feather, FontAwesome6, MaterialCommunityIcons } from '@expo/vector-icons'
 import { router } from 'expo-router'
-import React from 'react'
+import { collection, onSnapshot } from 'firebase/firestore'
+import React, { useEffect, useMemo, useState } from 'react'
 import { FlatList, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
@@ -18,53 +21,109 @@ interface WorkStatsProps {
   highlight?: boolean;
 }
 
-const WorkStats: WorkStatsProps[] = [
-  {
-    id: "1",
-    title: "Jobs In Progress",
-    total: 8,
-    subtitle: "Out of 29",
-    icon: "progress-clock",
-    color: "bg-emerald-500",
-  },
-  {
-    id: "2",
-    title: "New Requests",
-    total: 5,
-    subtitle: "Awaiting assignment",
-    icon: "inbox-arrow-down",
-    color: "bg-blue-500",
-  },
-  {
-    id: "3",
-    title: "Earnings (Month)",
-    total: 12540,
-    subtitle: "This month",
-    icon: "cash-multiple",
-    color: "bg-yellow-500",
-  },
-  {
-    id: "4",
-    title: "Worker of the Week",
-    workerName: "Thabo",
-    subtitle: "12 jobs completed",
-    icon: "medal-outline",
-    color: "bg-purple-500",
-    highlight: true,
-  },
-  {
-    id: "5",
-    title: "Worker Performance Score",
-    rating: 4.7,
-    subtitle: "Average rating",
-    icon: "account-star",
-    color: "bg-red-500",
-  }
-]
+interface Worker {
+    id: string;
+    username?: string;
+    role?: string;
+    email?: string;
+}
+
 
 const AdminDashboard = () => {
 
-  const { user } = useAuth()
+    const { user } = useAuth()
+    const { loading, allRequests } = useRequests()
+
+    const [workers, setWorkers] = useState<Worker[]>([]);
+
+    useEffect(() => {
+  const ref = collection(db, "users"); 
+  const unsubscribe = onSnapshot(ref, (snapshot) => {
+    setWorkers(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+  });
+
+  return unsubscribe;
+}, []);
+
+    
+    const stats = useMemo(() => {
+        const totalRequests = allRequests.length
+
+        const jobsInProgress = allRequests.filter(
+            (r) => r.status === "in-progress"
+        ).length
+
+        const newRequests = allRequests.filter(
+            (r) => r.status === "pending"
+        ).length
+
+        const completedJobs = allRequests.filter(
+            (r) => r.status === "completed"
+        ).length
+
+         const workerCountNum = workers.length;
+
+        // Worker of the Week (simple version)
+    const workerCount: Record<string, number> = {};
+
+    const topWorker = Object.entries(workerCount).sort((a, b) => b[1] - a[1])[0];
+    const topWorkerId = topWorker?.[0] || null;
+    const topWorkerJobs = topWorker?.[1] || 0;
+
+    return {
+      totalRequests,
+      jobsInProgress,
+      newRequests,
+      completedJobs,
+      topWorkerId,
+        topWorkerJobs,
+      workerCountNum
+    };  
+    }, [allRequests])
+
+      const WorkStats: WorkStatsProps[] = [
+    {
+      id: "1",
+      title: "Jobs In Progress",
+      total: stats.jobsInProgress,
+      subtitle: `Out of ${stats.totalRequests}`,
+      icon: "progress-clock",
+      color: "bg-emerald-500"
+    },
+    {
+      id: "2",
+      title: "New Requests",
+      total: stats.newRequests,
+      subtitle: "Awaiting assignment",
+      icon: "inbox-arrow-down",
+      color: "bg-blue-500"
+    },
+    {
+      id: "3",
+      title: "Earnings (Month)",
+      total: 12000,
+      subtitle: "Completed work earnings",
+      icon: "cash-multiple",
+      color: "bg-yellow-500"
+    },
+    {
+      id: "4",
+      title: "Worker of the Week",
+      workerName: stats.topWorkerId ?? "No Data",
+      subtitle: `${stats.topWorkerJobs} jobs completed`,
+      icon: "medal-outline",
+      color: "bg-purple-500",
+      highlight: true
+    },
+    {
+      id: "5",
+      title: "Completed Jobs",
+      total: stats.completedJobs,
+      subtitle: "All-time",
+      icon: "check-circle-outline",
+      color: "bg-red-500"
+    }
+  ];
 
   const StatsCard = ({ item }: { item: WorkStatsProps }) => (
     <TouchableOpacity
@@ -142,7 +201,7 @@ const AdminDashboard = () => {
             <Feather name="check-circle" size={16} color="#29f22d" />
             <Text className='font-bold text-brand-text'>JOBS DONE</Text>
           </View>
-          <Text className='text-brand-text font-extrabold text-center'>12</Text>
+                  <Text className='text-brand-text font-extrabold text-center'>{ stats.completedJobs }</Text>
         </View>
 
         <View className='bg-brand-surface rounded-xl p-5 max-w-2xl'>
@@ -150,7 +209,7 @@ const AdminDashboard = () => {
             <FontAwesome6 name="people-group" size={16} color="#007AFF" />
             <Text className='font-bold text-brand-text'>WORKERS</Text>
           </View>
-          <Text className='text-brand-text font-extrabold text-center'>37</Text>
+                  <Text className='text-brand-text font-extrabold text-center'>{ stats.workerCountNum }</Text>
         </View>
 
       </View>
