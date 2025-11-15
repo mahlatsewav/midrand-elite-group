@@ -40,6 +40,7 @@ export interface ServiceRequest {
 
 interface RequestContextType {
   requests: ServiceRequest[];
+  allRequests: ServiceRequest[];
   addRequest: (request: { 
     title: string; 
     description: string; 
@@ -61,7 +62,40 @@ const RequestContext = createContext<RequestContextType | undefined>(undefined);
 export function RequestProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
+  const [allRequests, setAllRequests] = useState<ServiceRequest[]>([])
   const [loading, setLoading] = useState(true);
+
+ useEffect(() => {
+  if (!user) {
+    setAllRequests([]);
+    return;
+  }
+
+  if (user.role !== "admin") return;
+
+  const q = query(
+    collection(db, "serviceRequests"),
+    orderBy("createdAt", "desc")
+  );
+
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    const results: ServiceRequest[] = [];
+    snapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      results.push({
+        id: docSnap.id,
+        ...data,
+        createdAt: data.createdAt?.toDate?.().toISOString() ?? new Date().toISOString(),
+        updatedAt: data.updatedAt?.toDate?.().toISOString() ?? new Date().toISOString(),
+      } as ServiceRequest);
+    });
+
+    setAllRequests(results);
+  });
+
+  return () => unsubscribe();
+}, [user]);
+
 
   useEffect(() => {
     if (!user) {
@@ -136,20 +170,34 @@ export function RequestProvider({ children }: { children: ReactNode }) {
 
     for (const uri of uris) {
       try {
-        console.log('Uploading image:', uri);
-        const response = await fetch(uri);
-        const blob = await response.blob();
+        console.log("Uploading image: ", uri)
 
-        const fileName = `requests/${Date.now()}-${Math.random()
-          .toString(36)
-          .substring(7)}.jpg`;
+        // Convert local file uri -> blob (Expo way)
+        const blob: Blob = await new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.onload = () => resolve(xhr.response)
+          xhr.onerror = () => reject(new Error("failed to load file"))
+          xhr.responseType = "blob"
+          xhr.open("GET", uri, true)
+          xhr.send(null)
+        });
+
+        const fileName = `request/${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`
 
         const storageRef = ref(storage, fileName);
-        await uploadBytes(storageRef, blob);
+
+        // Upload Blob to Firebase storage
+        await uploadBytes(storageRef, blob)
+
+        // Get url
         const downloadUrl = await getDownloadURL(storageRef);
-        
-        console.log('Image uploaded successfully:', downloadUrl);
-        urls.push(downloadUrl);
+        console.log("Image uploaded successfully: ", downloadUrl)
+
+        urls.push(downloadUrl)
+
+        // clean up blob (for ios)
+        blob.close?.();
+       
       } catch (err) {
         console.error('Error uploading image:', err);
       }
@@ -242,6 +290,7 @@ export function RequestProvider({ children }: { children: ReactNode }) {
     <RequestContext.Provider
       value={{
         requests,
+        allRequests,
         addRequest,
         updateRequestStatus,
         acceptRequest,

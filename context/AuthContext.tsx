@@ -1,13 +1,13 @@
 import { router, useRouter, useSegments } from 'expo-router';
-import React, { createContext, ReactNode, useContext, useState, useEffect } from 'react';
-import { auth, db } from '../firebase';
-import { 
-  signInWithEmailAndPassword, 
-  signOut as firebaseSignOut, 
+import {
+  createUserWithEmailAndPassword,
+  signOut as firebaseSignOut,
   onAuthStateChanged,
-  createUserWithEmailAndPassword 
+  signInWithEmailAndPassword
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
+import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import { auth, db } from '../firebase';
 
 type Role = 'user' | 'worker' | 'admin';
 
@@ -77,6 +77,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             router.push('/(tabs)/worker-dashboard');
           } else if (newUser.role === 'user') {
             router.push('/(tabs)/home');
+          } else if (newUser.role === "admin") {
+            router.push("/(tabs)/admin-dashboard")
           }
         } else {
           console.log('No user document found for UID:', firebaseUser.uid);

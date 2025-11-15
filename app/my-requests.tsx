@@ -1,10 +1,10 @@
-import { View, Text, TouchableOpacity, FlatList, SafeAreaView, ActivityIndicator, Modal, ScrollView, Image, Alert } from 'react-native';
-import { useAuth } from '../../context/AuthContext';
-import { useRequests, ServiceRequest } from '../../context/RequestContext';
-import { useRouter } from 'expo-router';
 import RequestCard from '@/components/ui/RequestCard';
-import React, { useState } from 'react';
 import { FontAwesome } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { ActivityIndicator, Alert, FlatList, Image, Modal, SafeAreaView, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { useAuth } from '../context/AuthContext';
+import { ServiceRequest, useRequests } from '../context/RequestContext';
 
 export default function MyRequestsScreen() {
   const { user } = useAuth();

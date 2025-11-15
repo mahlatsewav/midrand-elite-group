@@ -1,11 +1,17 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabLayout() {
   const { user } = useAuth();
   const role = user?.role || 'user'; // Default to 'user' if not loaded
+
+  const inset = useSafeAreaInsets()
+  
+  const tabHeight = inset.bottom ? 40 + inset.bottom : 70
 
   return (
     <Tabs
@@ -14,10 +20,11 @@ export default function TabLayout() {
         tabBarActiveTintColor: '#60A5FA', // brand-blue
         tabBarInactiveTintColor: '#8E8E93',
         tabBarStyle: {
+          bottom: 0,
           backgroundColor: '#1A1A1E',
           paddingBottom: 10,
-          paddingTop: 8, 
-          height: 70,
+          paddingTop: 2, 
+          height: tabHeight,
           borderTopWidth: 0
         }, // brand-dark
       }}
@@ -37,6 +44,36 @@ export default function TabLayout() {
           )
         }}
       />
+      <Tabs.Screen
+        name="admin-dashboard"
+        options={{
+          title: 'Dashboard',
+          href: role === 'admin' ? '/(tabs)/admin-dashboard' : null, // Hide for workers and users
+          tabBarIcon: ({ color, size, focused }) => (
+            <MaterialIcons
+              name='admin-panel-settings'
+              size={size}
+              color={color}
+            />
+          )
+        }}
+      />
+ 
+       <Tabs.Screen
+        name="pending-request"
+        options={{
+          title: 'request',
+          href: role === 'admin' ? '/(tabs)/pending-request' : null, // Hide for workers
+          tabBarIcon: ({ color, size, focused }) => (
+            <MaterialCommunityIcons
+              name={focused ? 'timeline-check' : 'timeline-check-outline'}
+              size={size}
+              color={color}
+            />
+          )
+        }}
+      />
+
       <Tabs.Screen
         name="new-request"
         options={{
@@ -79,6 +116,7 @@ export default function TabLayout() {
           )
         }}
       />
+
     </Tabs>
   );
 }

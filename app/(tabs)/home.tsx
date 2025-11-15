@@ -169,7 +169,7 @@ export default function HomeScreen() {
         <View className="flex-row mb-6">
           <TouchableOpacity
             className="flex-1 bg-brand-surface p-4 rounded-lg mr-2 flex-row items-center"
-            onPress={() => router.push('/(tabs)/my-requests' )}
+            onPress={() => router.push('/my-requests')}
           >
             <FontAwesome name="list" size={20} color="#0A84FF" />
             <Text className="text-brand-text ml-3 font-semibold">My Requests</Text>

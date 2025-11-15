@@ -1,18 +1,18 @@
 import { FontAwesome } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import React, { useState, useEffect } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  FlatList,
   Image,
+  Modal,
   ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  Modal,
-  FlatList,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRequests } from "../../context/RequestContext";
@@ -225,7 +225,7 @@ export default function NewRequestScreen() {
       [
         {
           text: 'OK',
-          onPress: () => router.push('/(tabs)/my-requests')
+          onPress: () => router.push('/my-requests')
         }
       ]
     );
@@ -241,8 +241,8 @@ export default function NewRequestScreen() {
 };
 
   return (
-    <SafeAreaView edges={["top", "bottom"]} className="flex-1 bg-brand-dark">
-      <ScrollView className="p-6">
+    <SafeAreaView edges={["top" , "bottom"]} className="flex-1 bg-brand-dark">
+      <ScrollView className="px-6">
         {/* Header */}
         <View className="flex-row items-center mb-6">
           <TouchableOpacity onPress={() => router.back()} className="mr-4">
